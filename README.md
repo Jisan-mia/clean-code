@@ -1,70 +1,277 @@
-# Getting Started with Create React App
+## React clean code practices
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+1. JSX shorthands when passing boolean variables as props
+```jsx
+// bad
+return (
+  <Profile isAdmin={true} />
+);
+```
+```jsx
+// good
+return (
+  <Profile isAdmin />
+)
+```
 
-## Available Scripts
+2. Use ternary operator instead of if/else 
+```jsx
+// bad
+const { role } = user;
+if(role === ADMIN) {
+  return <AdminUser />
+} else {
+  return <NormalUser />
+}
+```
+```jsx
+// good
+const { role } = user;
+return role = ADMIN ? <AdminUser /> : <NormalUser />
+```
 
-In the project directory, you can run:
+3. Take Advantage of Object Literals where there is multiple options
+```jsx
+// bad
+const { role } = user;
+switch(role) {
+  case ADMIN:
+    return <AdminUser />;
+  case EMPLOYEE:
+    return <EmployeeUser />;
+  case USER:
+    return <NormalUser />;
+}
+```
+```jsx
+// good
+const { role } = user;
 
-### `yarn start`
+const component = {
+  ADMIN: AdminUser,
+  EMPLOYEE: EmployeeUser,
+  USER: NormalUser
+}
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+const Component = component[role];
+return <Component />
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```
 
-### `yarn test`
+4. User fragments(<>) over div 
+```jsx
+// good
+return (
+  <>
+    <Component1 />
+    <Component2 />
+  </>
+)
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+5. Don't Define a Function Inside Render
+```jsx
+// bad
+import {useState} from 'react';
+const [data, setData] = useState({
+  name: '',
+  pass: ''
+})
+return (
+  <button onclick={() => setData({name: 'Jisan', pass:'1223'})}> 
+    Submit
+  </button>
+) 
+```
+```jsx
+// good
+import {useState} from 'react';
+const [data, setData] = useState({
+  name: '',
+  pass: ''
+})
+const handleSubmit = () => setData({name: 'Jisan', pass='1223'})
+return (
+  <button onclick={handleSubmit}> 
+    Submit
+  </button>
+) 
+```
 
-### `yarn build`
+6. Use memo. React.PureComponent and Memo can significantly improve the performance of your application. They help us to avoid unnecessary rendering.
+```jsx
+// bad
+import React, {useState} from 'react';
+const [userName, setUserName] = useState('Jisan')
+const [count, setCount] = useState(0)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+const handleIncrement = setCount(count+1)
+return (
+  <>
+    <button onclick={handleIncrement}> 
+      Increment
+    </button>
+    <ChildComponent userName={userName}/>
+  </>
+) 
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+const ChildrenComponent =({ userName }) => {
+  console.log("rendered", userName);
+  return <div> {userName} </div>;
+};
+```
+Although child component has nothing to do with count state but it renders when you click on th button
+Let's edit child component with memo. This time it will only render when necessary.
+```jsx
+// good
+const ChildrenComponent = React.memo(({ userName }) => {
+  return <div> {userName}</div>
+})
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+7. Use object destructuring 
+```jsx
+// bad
+return (
+  <>
+    <p> {student.name} </p>
+    <p> {student.id} </p>
+    <p> {student.age} </p>
+  </>
+)
+```
+```jsx
+// good
+const {name, id, age} = student
+return (
+  <>
+    <p> {name} </p>
+    <p> {id} </p>
+    <p> {age} </p>
+  </>
+)
+```
 
-### `yarn eject`
+8. Use template literals to build large strings and avoid string concatenation for the purpose code cleanness.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```jsx
+// not good
+let description = user.name + "'s profession is " + user.profession
+// good way
+description = `${user.name}'s profession is ${user.profession}`
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+return <p> {description} </p>
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+9. Import In order. It improves code readability.
+The role of thumb is to keep the import order like this:
+- Built-in
+- External
+- Internal
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```jsx
+// example of import in order
+import React from 'react';
 
-## Learn More
+import { PropTypes } from 'prop-types';
+import styled from 'styled-components/native';
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+import ErrorImg from '../../assets/images/error.png';
+import colors from '../../styles/colors';
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Code Splitting
+10. Use implicit return which is a JavaScript features to write beautiful code. 
+```js
+// bad
+const addTowNumber = (a, b) => {
+  return a + b;
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+// good
+const addTowNumber1 = (a, b) => a + b
+```
 
-### Analyzing the Bundle Size
+11. Component naming. Always use PascalCase for components and camelCase for instances.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```jsx
+// example
+import UserCard  from './UserCard';
 
-### Making a Progressive Web App
+const userCardItem = <UserCard />
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+12. Reserved Prop Naming.
+Don’t use DOM component prop names for passing props between components because others might not expect these names.
 
-### Advanced Configuration
+```jsx
+// bad
+<CustomButton style="dark" /> // or
+<CustomButton className="secondary" />
+```
+```jsx
+// good example
+<CustomButton variant='fancy'/>
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Deployment
+13. **Quotes**: Use double quotes for jsx attributes and single quotes for all other JS
+```jsx
+// example
+return (
+  <>
+    <MyComponent title="Jisan">
+    <p style={{color: 'violet', padding: '25px'}}> Hi there, </p>
+  </>
+)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```
 
-### `yarn build` fails to minify
+14. **Prop Naming**: Always use camelCase for prop names or PascalCase if the value is a react component. 
+```jsx
+// example
+return (
+  <MyComponent
+    userName="Jisan"
+    phoneNumber="254544445"
+    Component={ComponentName}
+/>
+)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+
+15. **JSX in Parentheses**: 
+If your component spans more than one line, always wrap it in parentheses.
+```jsx
+// example
+return (
+    <MyComponent userId="1123">
+      <MyChild />
+    </MyComponent>
+);
+```
+
+16. **Self-Closing Tags:**
+If your component doesn’t have any children, then use self-closing tags. It improves readability.
+
+```jsx
+// instead of this
+<Navbar title='Jisan'></Navbar>
+
+// follow this
+<Navbar title='Jisan' />
+```
+17. **Alt Prop**:
+Always include an alt prop in your <img > tags. And don’t use picture or image in your alt property because the screenreaders already announce img elements as images. No need to include that.
+
+```html
+<!-- bad example -->
+<img src="nature.jpg" />
+
+<img src="nature.jpg" alt="Picture of nature" />
+```
+
+```html
+<!-- good -->
+<img src='nature.jpg' alt="Beauty of nature" />
+```# clean-code
